@@ -10,19 +10,16 @@
 
 #include "common.h"
 
-// 표시할 색상 정의. 대충 맞춰 뒀는데, 취향껏 추가하거나 변경하기
-#define COLOR_DEFAULT	15
-#define COLOR_CURSOR	112
-#define COLOR_RESOURCE  112
-#define COLOR_BLUE 1
-#define COLOR_RED 2
-#define COLOR_YELLOW 3
-#define COLOR_ORANGE 4
-#define COLOR_BLACK 5
-#define COLOR_GRAY 6
-#define COLOR_RESOURCE 7
+// 표시할 색상 정의 (중복 제거 및 수정)
 #define COLOR_DEFAULT 15
 #define COLOR_CURSOR 112
+#define COLOR_RESOURCE 14
+#define COLOR_BLUE 9
+#define COLOR_RED 12
+#define COLOR_YELLOW 14
+#define COLOR_BROWN 6
+#define COLOR_BLACK 0
+#define COLOR_GRAY 8
 
 // 지금은 자원, 맵, 커서만 표시
 // 앞으로 화면에 표시할 내용들 여기에 추가하기

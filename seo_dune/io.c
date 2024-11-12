@@ -2,6 +2,9 @@
 * raw(?) I/O
 */
 #include "io.h"
+#include <Windows.h>
+#include <conio.h>
+#include "common.h"
 
 void gotoxy(POSITION pos) {
 	COORD coord = { pos.column, pos.row }; // 행, 열 반대로 전달

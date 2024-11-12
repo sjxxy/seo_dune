@@ -1,9 +1,11 @@
+// engine.c
 #include <stdlib.h>
 #include <time.h>
 #include <assert.h>
 #include "common.h"
 #include "io.h"
 #include "display.h"
+
 //TEST
 void init(void);
 void intro(void);
@@ -89,12 +91,11 @@ void init(void) {
     map[0][MAP_HEIGHT - 3][2] = 'B';
     map[0][MAP_HEIGHT - 2][1] = 'B';
     map[0][MAP_HEIGHT - 2][2] = 'B';
-    // 죄하단 장판(P) 배치
+    // 좌하단 장판(P) 배치
     map[0][MAP_HEIGHT - 3][3] = 'P';
     map[0][MAP_HEIGHT - 2][3] = 'P';
     map[0][MAP_HEIGHT - 3][4] = 'P';
     map[0][MAP_HEIGHT - 2][4] = 'P';
-    // 지울거
     // 우상단 본진(B) 배치
     map[0][1][MAP_WIDTH - 2] = 'B';
     map[0][2][MAP_WIDTH - 2] = 'B';
@@ -134,7 +135,7 @@ void init(void) {
 
     // 샌드웜 생성
     map[1][2][10] = 'W';
-    map[1][12][40] = 'W';
+    map[1][13][45] = 'W';
 
     // layer 0(map[0])에 지형 생성
     // 외곽 벽 생성
