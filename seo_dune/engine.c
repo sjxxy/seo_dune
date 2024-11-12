@@ -94,6 +94,7 @@ void init(void) {
     map[0][MAP_HEIGHT - 2][3] = 'P';
     map[0][MAP_HEIGHT - 3][4] = 'P';
     map[0][MAP_HEIGHT - 2][4] = 'P';
+    // 지울거
     // 우상단 본진(B) 배치
     map[0][1][MAP_WIDTH - 2] = 'B';
     map[0][2][MAP_WIDTH - 2] = 'B';
