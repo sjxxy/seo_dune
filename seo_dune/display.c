@@ -15,6 +15,7 @@ const POSITION system_msg_pos = { MAP_HEIGHT + 2, 0 };
 char backbuf[MAP_HEIGHT][MAP_WIDTH] = { 0 };
 char frontbuf[MAP_HEIGHT][MAP_WIDTH] = { 0 };
 
+
 CURSOR selected_cursor = { { -1, -1 }, { -1, -1 } };  // 선택된 객체 위치를 저장
 
 void project(char src[N_LAYER][MAP_HEIGHT][MAP_WIDTH], char dest[MAP_HEIGHT][MAP_WIDTH]);
