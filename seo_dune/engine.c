@@ -1,4 +1,3 @@
-// engine.c
 #include <stdlib.h>
 #include <time.h>
 #include <assert.h>
@@ -6,13 +5,18 @@
 #include "io.h"
 #include "display.h"
 
-//TEST
+// 외부에서 선언된 selected_cursor 변수를 참조
+extern CURSOR selected_cursor;
+
+// TEST
 void init(void);
 void intro(void);
 void outro(void);
 void cursor_move(DIRECTION dir);
 void sample_obj_move(void);
 POSITION sample_obj_next_position(void);
+void handle_spacebar(void);   // 스페이스바 처리 함수
+void handle_esc(void);        // ESC 키 처리 함수
 
 /* ================= control =================== */
 int sys_clock = 0;  // system-wide clock(ms)
@@ -21,11 +25,11 @@ CURSOR cursor = { { 1, 1 }, {1, 1} };
 /* ================= game data =================== */
 char map[N_LAYER][MAP_HEIGHT][MAP_WIDTH] = { 0 };
 
-RESOURCE resource = {  // [MODIFIED]
-    .spice = 10,        // [MODIFIED]
-    .spice_max = 100,   // [MODIFIED]
-    .population = 5,    // [MODIFIED]
-    .population_max = 50 // [MODIFIED]
+RESOURCE resource = {
+    .spice = 10,
+    .spice_max = 100,
+    .population = 5,
+    .population_max = 50
 };
 
 OBJECT_SAMPLE obj = {
@@ -35,6 +39,12 @@ OBJECT_SAMPLE obj = {
     .speed = 300,
     .next_move_time = 300
 };
+
+/* ================= 추가 변수 =================== */
+KEY last_key = k_none;        // 마지막 입력된 키를 저장
+clock_t last_key_time = 0;    // 마지막 키 입력 시간을 저장
+int double_click_delay = 200; // 더블클릭 인식 시간(밀리초 단위) 설정
+int multi_move_distance = 5;  // 더블클릭 시 이동할 칸 수 설정 (5칸 이상)
 
 /* ================= main() =================== */
 int main(void) {
@@ -48,17 +58,41 @@ int main(void) {
         // loop 돌 때마다(즉, TICK==10ms마다) 키 입력 확인
         KEY key = get_key();
 
-        // 키 입력이 있으면 처리
+        // 방향키 입력이 있으면 처리
         if (is_arrow_key(key)) {
-            cursor_move(ktod(key));
+            clock_t current_time = clock();
+            int time_diff = (int)((current_time - last_key_time) * 1000 / CLOCKS_PER_SEC);
+
+            // 동일한 키가 짧은 시간 내에 두 번 입력되면 여러 칸 이동
+            if (key == last_key && time_diff <= double_click_delay) {
+                for (int i = 0; i < multi_move_distance; i++) {
+                    cursor_move(ktod(key));  // 여러 칸 이동
+                }
+            }
+            else {
+                cursor_move(ktod(key)); // 한 칸 이동
+            }
+
+            // 마지막 키와 시간 갱신
+            last_key = key;
+            last_key_time = current_time;
         }
         else {
-            // 방향키 외의 입력
+            // 방향키 외의 입력 처리
             switch (key) {
-            case k_quit: outro();
+            case k_quit:
+                outro();
+                break;
+            case k_esc:
+                handle_esc();  // ESC 키 눌렀을 때 처리
+                break;
+            case k_space:
+                handle_spacebar();  // 스페이스바 눌렀을 때 처리
+                break;
             case k_none:
             case k_undef:
-            default: break;
+            default:
+                break;
             }
         }
 
@@ -66,7 +100,7 @@ int main(void) {
         sample_obj_move();
 
         // 화면 출력
-        display(resource, map, cursor);  // [MODIFIED] Added arguments to match updated display() function signature
+        display(resource, map, cursor);  // [MODIFIED] display 함수에 맞게 인자 추가
         Sleep(TICK);
         sys_clock += 10;
     }
@@ -171,44 +205,49 @@ void init(void) {
     resource.spice_max = 100;
     resource.population = 5;
     resource.population_max = 50;
+
+    // 초기 selected_cursor 위치를 커서 위치로 설정
+    selected_cursor.previous = cursor.current;
+    selected_cursor.current = cursor.current;
 }
 
 // (가능하다면) 지정한 방향으로 커서 이동
 void cursor_move(DIRECTION dir) {
-    POSITION curr = cursor.current;
-    POSITION new_pos = pmove(curr, dir);
+    static POSITION prev_positions[10];
+    static int prev_index = 0;
 
-    // validation check
-    if (1 <= new_pos.row && new_pos.row <= MAP_HEIGHT - 2 && \
+    prev_positions[prev_index++] = cursor.current;
+
+    POSITION new_pos = pmove(cursor.current, dir);
+
+    if (1 <= new_pos.row && new_pos.row <= MAP_HEIGHT - 2 &&
         1 <= new_pos.column && new_pos.column <= MAP_WIDTH - 2) {
-
         cursor.previous = cursor.current;
         cursor.current = new_pos;
+    }
+
+    if (prev_index >= multi_move_distance) {
+        prev_index = 0;
     }
 }
 
 /* ================= sample object movement =================== */
 POSITION sample_obj_next_position(void) {
-    // 현재 위치와 목적지를 비교해서 이동 방향 결정    
     POSITION diff = psub(obj.dest, obj.pos);
     DIRECTION dir;
 
-    // 목적지 도착. 지금은 단순히 원래 자리로 왕복
     if (diff.row == 0 && diff.column == 0) {
         if (obj.dest.row == 1 && obj.dest.column == 1) {
-            // topleft --> bottomright로 목적지 설정
             POSITION new_dest = { MAP_HEIGHT - 2, MAP_WIDTH - 2 };
             obj.dest = new_dest;
         }
         else {
-            // bottomright --> topleft로 목적지 설정
             POSITION new_dest = { 1, 1 };
             obj.dest = new_dest;
         }
         return obj.pos;
     }
 
-    // 가로축, 세로축 거리를 비교해서 더 먼 쪽 축으로 이동
     if (abs(diff.row) >= abs(diff.column)) {
         dir = (diff.row >= 0) ? d_down : d_up;
     }
@@ -216,30 +255,40 @@ POSITION sample_obj_next_position(void) {
         dir = (diff.column >= 0) ? d_right : d_left;
     }
 
-    // validation check
-    // next_pos가 맵을 벗어나지 않고, (지금은 없지만)장애물에 부딪히지 않으면 다음 위치로 이동
     POSITION next_pos = pmove(obj.pos, dir);
-    if (1 <= next_pos.row && next_pos.row <= MAP_HEIGHT - 2 && \
-        1 <= next_pos.column && next_pos.column <= MAP_WIDTH - 2 && \
+    if (1 <= next_pos.row && next_pos.row <= MAP_HEIGHT - 2 &&
+        1 <= next_pos.column && next_pos.column <= MAP_WIDTH - 2 &&
         map[1][next_pos.row][next_pos.column] < 0) {
 
         return next_pos;
     }
     else {
-        return obj.pos;  // 제자리
+        return obj.pos;
     }
 }
 
 void sample_obj_move(void) {
     if (sys_clock <= obj.next_move_time) {
-        // 아직 시간이 안 됐음
         return;
     }
 
-    // 오브젝트(건물, 유닛 등)은 layer1(map[1])에 저장
     map[1][obj.pos.row][obj.pos.column] = -1;
     obj.pos = sample_obj_next_position();
     map[1][obj.pos.row][obj.pos.column] = obj.repr;
 
     obj.next_move_time = sys_clock + obj.speed;
+}
+
+/* ================= new functions =================== */
+void handle_spacebar(void) {
+    // 현재 커서 위치를 selected_cursor에 저장
+    selected_cursor.previous = selected_cursor.current;
+    selected_cursor.current = cursor.current;
+
+    // 선택된 위치의 오브젝트 정보를 업데이트
+    display_status();  // 상태창에 선택된 위치의 오브젝트 상태 표시
+}
+
+void handle_esc(void) {
+    handle_cancel();
 }

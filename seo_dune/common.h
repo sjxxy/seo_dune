@@ -14,7 +14,6 @@
 #define MAP_WIDTH	60
 #define MAP_HEIGHT	18
 
-
 /* ================= 위치와 방향 =================== */
 // 맵에서 위치를 나타내는 구조체
 typedef struct {
@@ -28,20 +27,20 @@ typedef struct {
 } CURSOR;
 
 // 입력 가능한 키 종류.
-// 수업에서 enum은 생략했는데, 크게 어렵지 않으니 예제 검색
+// k_space와 k_esc 키를 추가했습니다.
 typedef enum {
 	// k_none: 입력된 키가 없음. d_stay(안 움직이는 경우)에 대응
 	k_none = 0, k_up, k_right, k_left, k_down,
 	k_quit,
-	k_undef, // 정의되지 않은 키 입력	
+	k_esc,      // ESC 키
+	k_space,    // 스페이스바
+	k_undef     // 정의되지 않은 키 입력	
 } KEY;
-
 
 // DIRECTION은 KEY의 부분집합이지만, 의미를 명확하게 하기 위해서 다른 타입으로 정의
 typedef enum {
 	d_stay = 0, d_up, d_right, d_left, d_down
 } DIRECTION;
-
 
 /* ================= 위치와 방향(2) =================== */
 // 편의성을 위한 함수들. KEY, POSITION, DIRECTION 구조체들을 유기적으로 변환
@@ -81,7 +80,6 @@ typedef struct {
 	int population_max;  // 수용 가능한 인구 수
 } RESOURCE;
 
-
 // 대강 만들어 봤음. 기능 추가하면서 각자 수정할 것
 typedef struct {
 	POSITION pos;		// 현재 위치(position)
@@ -91,6 +89,10 @@ typedef struct {
 	int next_move_time;	// 다음에 움직일 시간
 	int speed;
 } OBJECT_SAMPLE;
+
+// 함수 선언 추가
+void handle_selection(CURSOR cursor, char map[N_LAYER][MAP_HEIGHT][MAP_WIDTH]);
+void handle_cancel(void);
 
 #endif
 #pragma once
