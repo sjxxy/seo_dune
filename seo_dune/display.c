@@ -3,7 +3,8 @@
 
 // 외부에서 선언된 cursor 변수를 참조
 extern CURSOR cursor;
-
+int a = 0;
+////테스트임
 // 출력할 내용들의 좌상단(topleft) 자편
 const POSITION resource_pos = { 0, 0 };
 const POSITION map_pos = { 1, 0 };
