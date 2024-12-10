@@ -134,7 +134,7 @@ void enter_build_mode() {
 	display_system_message("건설 모드: P (장판), D (숙소), G (창고)"); // 명령창에 메시지 표시
 }
 
-
+//마무리 커밋 테스트
 
 // 건물 선택
 void select_building(char building_type) {
