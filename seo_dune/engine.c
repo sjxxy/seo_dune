@@ -77,7 +77,7 @@ void init_sandworms(char map[N_LAYER][MAP_HEIGHT][MAP_WIDTH]) {
 	}
 }
 
-// 샌드웜 동작 업데이트
+
 void update_sandworms(char map[N_LAYER][MAP_HEIGHT][MAP_WIDTH], RESOURCE* resource) {
 	for (int i = 0; i < sandworm_count; i++) {
 		SANDWORM* worm = &sandworms[i];
@@ -88,16 +88,27 @@ void update_sandworms(char map[N_LAYER][MAP_HEIGHT][MAP_WIDTH], RESOURCE* resour
 			worm->target = find_closest_unit(map, worm->pos);
 
 			if (worm->target.row == -1 || worm->target.column == -1) {
-				/*printf("DEBUG: No valid target for Sandworm at (%d, %d)\n", worm->pos.row, worm->pos.column);*/
 				continue;
 			}
-
-			//printf("DEBUG: Sandworm at (%d, %d) updated target to (%d, %d)\n",
-			//	worm->pos.row, worm->pos.column, worm->target.row, worm->target.column);
 		}
 
 		// 이동
 		move_sandworm(worm, map);
+
+		// 샌드웜이 하베스터 위치에 도달했는지 확인
+		if (map[1][worm->pos.row][worm->pos.column] == 'H') {
+			// 하베스터 제거
+			map[1][worm->pos.row][worm->pos.column] = -1;
+
+			// 메시지 출력
+			char message[100]; // 메시지 버퍼 크기 설정
+			snprintf(message, sizeof(message),
+				"하베스터가 (%d, %d)에서 샌드웜에게 잡혔습니다!",
+				worm->pos.row, worm->pos.column);
+			display_system_message(message);
+			// 자원 감소 등 추가 로직 처리 가능
+			resource->population--; // 인구 감소
+		}
 
 		// 배설 처리 (이동 후 배설)
 		if (sys_clock >= worm->next_deposit_time) {
@@ -105,6 +116,8 @@ void update_sandworms(char map[N_LAYER][MAP_HEIGHT][MAP_WIDTH], RESOURCE* resour
 		}
 	}
 }
+
+
 
 
 
@@ -486,9 +499,9 @@ void init(void) {
 
 
 	// 초기 자원 설정
-	resource.spice = 50;
+	resource.spice = 15;
 	resource.spice_max = 100;
-	resource.population = 5;
+	resource.population = 2;
 	resource.population_max = 50;
 
 	// 초기 selected_cursor 위치를 커서 위치로 설정

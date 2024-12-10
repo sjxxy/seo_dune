@@ -286,7 +286,7 @@ void display_command(void) {
         printf("명령창: B (건물 건설)");
         break;
     default:
-        printf("명령창: (명령 없음)");
+        printf("명령창:");
         break;
     }
 }
